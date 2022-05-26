@@ -1,0 +1,19 @@
+{
+    "name": "savks/e-filters",
+    "license": "proprietary",
+    "require": {
+        "savks/e-search": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Savks\\EFilters\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Savks\\EFilters\\Providers\\EFiltersServiceProvider"
+            ]
+        }
+    }
+}
