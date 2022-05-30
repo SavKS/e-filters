@@ -4,7 +4,6 @@ namespace Savks\EFilters\Support\Criteria;
 
 use Savks\EFilters\Criteria\Criteria;
 use Savks\EFilters\Support\Blocks\ChooseBlockDeclaration;
-use Savks\ESearch\Builder\DSL\Query;
 
 abstract class ChooseCriteria extends Criteria
 {
@@ -16,16 +15,16 @@ abstract class ChooseCriteria extends Criteria
     /**
      * @var ChooseBlockDeclaration|null
      */
-    protected ?ChooseBlockDeclaration $filterDeclaration;
+    protected ?ChooseBlockDeclaration $blockDeclaration;
 
     /**
      * @param array $values
-     * @param ChooseBlockDeclaration|null $filterDeclaration
+     * @param ChooseBlockDeclaration|null $blockDeclaration
      */
-    public function __construct(array $values, ChooseBlockDeclaration $filterDeclaration = null)
+    public function __construct(array $values, ChooseBlockDeclaration $blockDeclaration = null)
     {
         $this->values = $values;
-        $this->filterDeclaration = $filterDeclaration;
+        $this->blockDeclaration = $blockDeclaration;
     }
 
     /**
@@ -35,9 +34,4 @@ abstract class ChooseCriteria extends Criteria
     {
         return !empty($this->values);
     }
-
-    /**
-     * @return Query[]
-     */
-    abstract public function toQueries(): array;
 }

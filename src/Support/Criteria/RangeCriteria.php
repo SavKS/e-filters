@@ -4,7 +4,6 @@ namespace Savks\EFilters\Support\Criteria;
 
 use Savks\EFilters\Criteria\Criteria;
 use Savks\EFilters\Support\Blocks\RangeBlockDeclaration;
-use Savks\ESearch\Builder\DSL\Query;
 
 abstract class RangeCriteria extends Criteria
 {
@@ -21,22 +20,22 @@ abstract class RangeCriteria extends Criteria
     /**
      * @var RangeBlockDeclaration|null
      */
-    protected ?RangeBlockDeclaration $filterDeclaration;
+    protected ?RangeBlockDeclaration $blockDeclaration;
 
     /**
      * @param float|int|null $minValue
      * @param float|int|null $maxValue
-     * @param RangeBlockDeclaration|null $filterDeclaration
+     * @param RangeBlockDeclaration|null $blockDeclaration
      */
     public function __construct(
         float|int|null $minValue,
         float|int|null $maxValue,
-        RangeBlockDeclaration $filterDeclaration = null
+        RangeBlockDeclaration $blockDeclaration = null
     ) {
         $this->minValue = $minValue;
         $this->maxValue = $maxValue;
 
-        $this->filterDeclaration = $filterDeclaration;
+        $this->blockDeclaration = $blockDeclaration;
     }
 
     /**
@@ -46,9 +45,4 @@ abstract class RangeCriteria extends Criteria
     {
         return $this->minValue !== null || $this->maxValue !== null;
     }
-
-    /**
-     * @return Query
-     */
-    abstract public function toQuery(): Query;
 }

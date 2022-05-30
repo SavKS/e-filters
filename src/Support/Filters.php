@@ -2,8 +2,16 @@
 
 namespace Savks\EFilters\Support;
 
+use Closure;
+use Savks\EFilters\Blocks\Blocks;
+use Savks\EFilters\Builder\Result;
+use Savks\EFilters\Criteria\Conditions;
 use Savks\ESearch\Builder\Builder;
 
+use Elastic\Elasticsearch\Exception\{
+    ClientResponseException,
+    ServerResponseException
+};
 use Savks\EFilters\Support\Criteria\{
     ChooseCriteria,
     RangeCriteria
@@ -49,5 +57,90 @@ class Filters
         $this->criteria[] = $criteria;
 
         return $this;
+    }
+
+    /**
+     * @param int $page
+     * @param bool $withMapping
+     * @param Closure|null $mapResolver
+     * @return Result
+     * @throws ClientResponseException
+     * @throws ServerResponseException
+     */
+    public function paginate(int $page, bool $withMapping = false, Closure $mapResolver = null): Result
+    {
+        $query = clone $this->query;
+
+        $this->applyCriteria($query);
+
+        return new Result(
+            $query->paginate($page, $withMapping, $mapResolver),
+            new Blocks(clone $this->query, $this->criteria)
+        );
+    }
+
+    /**
+     * @param bool $withMapping
+     * @param Closure|null $mapResolver
+     * @return Result
+     * @throws ClientResponseException
+     * @throws ServerResponseException
+     */
+    public function get(bool $withMapping = false, Closure $mapResolver = null): Result
+    {
+        $query = clone $this->query;
+
+        $this->applyCriteria($query);
+
+        return new Result(
+            $query->get($withMapping, $mapResolver),
+            new Blocks(clone $this->query, $this->criteria)
+        );
+    }
+
+    /**
+     * @param bool $withMapping
+     * @param Closure|null $mapResolver
+     * @return Result
+     * @throws ClientResponseException
+     * @throws ServerResponseException
+     */
+    public function all(bool $withMapping = false, Closure $mapResolver = null): Result
+    {
+        $query = clone $this->query;
+
+        $this->applyCriteria($query);
+
+        return new Result(
+            $query->all($withMapping, $mapResolver),
+            new Blocks(clone $this->query, $this->criteria)
+        );
+    }
+
+    /**
+     * @param Builder $query
+     * @return Builder
+     */
+    protected function applyCriteria(Builder $query): Builder
+    {
+        foreach ($this->criteria as $criteria) {
+            if (! $criteria->exists()) {
+                continue;
+            }
+
+            $conditions = new Conditions();
+
+            $criteria->defineConditions($conditions);
+
+            if (! $conditions->all()) {
+                continue;
+            }
+
+            foreach ($conditions->all() as $condition) {
+                $query->addQuery($condition->query);
+            }
+        }
+
+        return $query;
     }
 }
