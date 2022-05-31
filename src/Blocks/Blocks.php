@@ -3,15 +3,23 @@
 namespace Savks\EFilters\Blocks;
 
 use Illuminate\Support\Arr;
-use LogicException;
 use RuntimeException;
+use Savks\EFilters\Builder\Criteria\Condition;
+use Savks\EFilters\Builder\Filters\RangeBlock;
 use Savks\EFilters\Criteria\Criteria;
-use Savks\ESearch\Builder\Builder;
+use Savks\EFilters\Support\Blocks\ChooseBlock;
+use stdClass;
 
 use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
     ClientResponseException,
     MissingParameterException,
     ServerResponseException
+};
+use Savks\ESearch\Builder\{
+    DSL\BoolCondition,
+    DSL\Query,
+    Builder
 };
 
 class Blocks
@@ -29,7 +37,7 @@ class Blocks
     /**
      * @var array
      */
-    protected array $blocksData;
+    protected array $criteriaWithBlocks;
 
     /**
      * @param Builder $query
@@ -42,163 +50,143 @@ class Blocks
     }
 
     /**
-     * @return array
+     * @return RangeBlock[]|ChooseBlock[]
+     * @throws AuthenticationException
      * @throws ClientResponseException
-     * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function fetchBlocksData(): array
+    protected function fetchCriteriaWithBlocks(): array
     {
-        $aggregationGroups = $this->composeAggregations();
+        $aggregations = $this->composeAggregations();
 
-        $result = $this->query->client->search([
-            'index' => $this->query->resource->prefixedIndexName(),
+        $response = $this->query->client->search($this->query->resource, [
             'from' => 0,
             'size' => 0,
             'body' => [
                 'query' => $this->query->toBodyQuery(),
-                'aggs' => Arr::collapse(
-                    Arr::pluck($aggregationGroups, 'aggregations')
-                ),
+                'aggs' => $aggregations,
             ],
         ]);
 
-        $filters = [];
+        $criteriaWithBlocks = [];
 
-        foreach ($aggregationGroups as $aggregationGroup) {
-            $data = $this->filters[$aggregationGroup['name']];
-
-            $aggregated = Arr::only(
-                $result['aggregations'],
-                \array_keys(
-                    $data['handlers']::aggregations()
-                )
+        foreach (\array_keys($aggregations) as $aggregationName) {
+            /** @var Criteria $criteria */
+            $criteria = Arr::first(
+                $this->criteria,
+                fn(Criteria $criteria) => $criteria::class === $aggregationName
             );
 
-            /** @var AbstractChooseFilter|AbstractRangeFilter $filter */
-            $filters[] = $filter = new $data['handlers']($aggregated, $data['payload']);
-
-            if (! isset($this->criteria['simple'][$filter->id()])) {
-                throw new LogicException("Criteria for [{$filter->id()}] not defined");
-            }
-
-            $filter->setCriteria(
-                $this->criteria['simple'][$filter->id()]
-            );
+            $criteriaWithBlocks[] = [
+                'criteria' => $criteria,
+                'blocks' => $criteria->blockDeclaration()->toBlocks(
+                    $response['aggregations'][$criteria::class]
+                ),
+            ];
         }
 
-        return $this->prepareFilters($filters);
+        return $this->prepareCriteriaWithBlocks($criteriaWithBlocks);
     }
 
     /**
-     * @param array $filters
-     * @return array
+     * @param array $blockGroups
+     * @return ChooseBlock[]|RangeBlock[]
+     * @throws AuthenticationException
      * @throws ClientResponseException
-     * @throws MissingParameterException
      * @throws ServerResponseException
      */
-    protected function prepareFilters(array $filters): array
+    protected function prepareCriteriaWithBlocks(array $blockGroups): array
     {
-        $initialQuery = $this->buildQueryByType('initial');
+        $conditions = [];
 
-        $criteria = $this->criteria['simple'] ?? [];
+        foreach ($blockGroups as $blockGroup) {
+            /** @var Criteria $criteria */
+            $criteria = $blockGroup['criteria'];
 
-        $rawQueries = [];
-
-        foreach ($this->rawQueries['simple'] ?? [] as $rawQuery) {
-            $rawQueries[] = $rawQuery;
+            foreach ($criteria->conditions()->all() as $condition) {
+                $conditions[$condition->id] = $condition;
+            }
         }
 
-        $blocks = collect($filters)
-            ->pluck('blocks')
-            ->collapse()
-            ->keyBy('id');
-
-        $conditions = collect($criteria)
-            ->pluck('conditions')
-            ->collapse()
-            ->keyBy('id');
-
-        $preQuery = [
-            'index' => $this->resource->prepareIndexName(),
+        $request = [
+            'size' => 0,
+            'body' => [
+                'query' => $this->query->toBodyQuery(),
+            ],
         ];
 
-        $queries = [];
+        foreach ($blockGroups as $blockGroup) {
+            foreach ($blockGroup['blocks'] as $block) {
+                /** @var ChooseBlock|RangeBlock|Block $block */
+                $subQuery = new Query();
 
-        foreach ($blocks as $block) {
-            /** @var AbstractBlock $block */
-            $blockConditions = $conditions->except($block->id);
+                $subQuery->bool(function (BoolCondition $boolCondition) use ($conditions, $block) {
+                    if (! ($block instanceof RangeBlock)) {
+                        /** @var Condition[] $blockConditions */
+                        $blockConditions = Arr::except($conditions, $block->id);
 
-            $subQuery = $rawQueries;
+                        foreach ($blockConditions as $condition) {
+                            $boolCondition->must($condition->query);
+                        }
+                    }
+                });
 
-            $subQuery[] = [
-                'bool' => [
-                    'must' => $initialQuery,
-                ],
-            ];
+                /** @var Criteria $criteria */
+                $criteria = $blockGroup['criteria'];
 
-            if (! ($block instanceof RangeBlock)) {
-                foreach ($blockConditions as $condition) {
-                    $subQuery[] = [
-                        'bool' => [
-                            'should' => $condition->query,
-                        ],
-                    ];
-                }
-            }
-
-            $queries[] = $preQuery;
-            $queries[] = [
-                'query' => [
-                    'bool' => [
-                        'must' => $subQuery,
+                $request['body']['aggs'][$block->id] = [
+                    'filter' => $subQuery->isEmpty() ?
+                        [
+                            'match_all' => new stdClass(),
+                        ] :
+                        $subQuery->toArray(),
+                    'aggs' => [
+                        $block->id => $criteria->blockDeclaration()->aggregations,
                     ],
-                ],
-                'size' => 0,
-                'aggs' => $this->filters[$block->entity]['handlers']::aggregations(),
-            ];
+                ];
+            }
         }
 
-        if ($queries) {
-            $result = $this->client->msearch([
-                'body' => $queries,
-            ]);
-        } else {
-            $result = [];
+        $response = $this->query->client->search($this->query->resource, $request);
+
+        foreach ($blockGroups as $blockGroup) {
+            foreach ($blockGroup['blocks'] as $block) {
+                /** @var ChooseBlock|RangeBlock|Block $block */
+                $block->mapToValues($response['aggregations'][$block->id][$block->id]);
+            }
         }
 
-        $i = 0;
-
-        foreach ($blocks as $block) {
-            $block->mapToValues(
-                $result['responses'][$i++]['aggregations'] ?? []
-            );
-        }
-
-        return $filters;
+        return $blockGroups;
     }
 
     /**
      * @param bool $flatten
      * @return array
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws MissingParameterException
      * @throws ServerResponseException
+     * @throws \Shelter\Kernel\Exceptions\DumpDie
      */
     public function toArray(bool $flatten = false): array
     {
-        if (! isset($this->blocksData)) {
-            $this->fetchBlocksData();
+        if (! isset($this->criteriaWithBlocks)) {
+            $this->criteriaWithBlocks = $this->fetchCriteriaWithBlocks();
         }
-
-        dde(1);
 
         $blocks = [];
         $selected = [];
         $values = [];
 
-        foreach ($this->filters as $filter) {
-            $data = $filter->toArray($flatten);
+        foreach ($this->criteriaWithBlocks as $criteriaWithBlock) {
+            /** @var Criteria $criteria */
+            $criteria = $criteriaWithBlock['criteria'];
+            /** @var Block[] $blocks */
+            $blocks = $criteriaWithBlock['blocks'];
+
+            foreach ($blocks as $block) {
+                $blocks[] = $block->toArray($flatten);
+            }
 
             if (! empty($data['blocks'])) {
                 $blocks[] = $data['blocks'];
@@ -248,5 +236,25 @@ class Blocks
         }
 
         return $matchedFilter->toArray($flatten);
+    }
+
+    /**
+     * @return array
+     */
+    protected function composeAggregations(): array
+    {
+        $result = [];
+
+        foreach ($this->criteria as $criteria) {
+            if (! $criteria->blockDeclaration()
+                || ! $criteria->blockDeclaration()->aggregations
+            ) {
+                continue;
+            }
+
+            $result[$criteria::class] = $criteria->blockDeclaration()->aggregations;
+        }
+
+        return $result;
     }
 }

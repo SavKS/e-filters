@@ -28,16 +28,12 @@ class ChooseBlock extends Block
      */
     public function mapToValues(array $aggregated): void
     {
-        $buckets = \is_string($this->mapper) ?
-            Arr::get($aggregated, $this->mapper) :
-            \call_user_func($this->mapper, $aggregated);
-
-        $buckets = Arr::pluck($buckets, 'doc_count', 'key');
+        $countsMap = \call_user_func($this->countsMapper, $aggregated);
 
         foreach ($this->values as $value) {
-            $count = $buckets[$value->id] ?? 0;
+            $count = $countsMap[$value->id] ?? 0;
 
-            $value->isActive = (bool)$count;
+            $value->isActive = $count > 0;
             $value->count = $count;
         }
     }

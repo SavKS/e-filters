@@ -9,9 +9,9 @@ use Savks\EFilters\Criteria\Conditions;
 use Savks\ESearch\Builder\Builder;
 
 use Elastic\Elasticsearch\Exception\{
+    AuthenticationException,
     ClientResponseException,
-    ServerResponseException
-};
+    ServerResponseException};
 use Savks\EFilters\Support\Criteria\{
     ChooseCriteria,
     RangeCriteria
@@ -64,6 +64,7 @@ class Filters
      * @param bool $withMapping
      * @param Closure|null $mapResolver
      * @return Result
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -83,6 +84,7 @@ class Filters
      * @param bool $withMapping
      * @param Closure|null $mapResolver
      * @return Result
+     * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
@@ -104,6 +106,7 @@ class Filters
      * @return Result
      * @throws ClientResponseException
      * @throws ServerResponseException
+     * @throws AuthenticationException
      */
     public function all(bool $withMapping = false, Closure $mapResolver = null): Result
     {
@@ -128,15 +131,11 @@ class Filters
                 continue;
             }
 
-            $conditions = new Conditions();
-
-            $criteria->defineConditions($conditions);
-
-            if (! $conditions->all()) {
+            if (! $criteria->conditions()->all()) {
                 continue;
             }
 
-            foreach ($conditions->all() as $condition) {
+            foreach ($criteria->conditions()->all() as $condition) {
                 $query->addQuery($condition->query);
             }
         }

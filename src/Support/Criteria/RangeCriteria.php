@@ -2,6 +2,7 @@
 
 namespace Savks\EFilters\Support\Criteria;
 
+use Savks\EFilters\Criteria\Conditions;
 use Savks\EFilters\Criteria\Criteria;
 use Savks\EFilters\Support\Blocks\RangeBlockDeclaration;
 
@@ -23,6 +24,11 @@ abstract class RangeCriteria extends Criteria
     protected ?RangeBlockDeclaration $blockDeclaration;
 
     /**
+     * @var Conditions
+     */
+    protected Conditions $conditions;
+
+    /**
      * @param float|int|null $minValue
      * @param float|int|null $maxValue
      * @param RangeBlockDeclaration|null $blockDeclaration
@@ -36,6 +42,26 @@ abstract class RangeCriteria extends Criteria
         $this->maxValue = $maxValue;
 
         $this->blockDeclaration = $blockDeclaration;
+
+        $this->defineConditions(
+            $this->conditions = new Conditions()
+        );
+    }
+
+    /**
+     * @return Conditions
+     */
+    public function conditions(): Conditions
+    {
+        return $this->conditions;
+    }
+
+    /**
+     * @return RangeBlockDeclaration|null
+     */
+    public function blockDeclaration(): ?RangeBlockDeclaration
+    {
+        return $this->blockDeclaration;
     }
 
     /**

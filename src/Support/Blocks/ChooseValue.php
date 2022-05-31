@@ -19,7 +19,7 @@ class ChooseValue
     /**
      * @var int
      */
-    public readonly int $count;
+    public int $count;
 
     /**
      * @var bool

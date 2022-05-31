@@ -23,9 +23,9 @@ abstract class Block
     public string $type;
 
     /**
-     * @var string|Closure
+     * @var Closure
      */
-    protected string|Closure $mapper;
+    protected Closure $countsMapper;
 
     /**
      * @var array|null
@@ -41,14 +41,14 @@ abstract class Block
      * @param string $id
      * @param string $title
      * @param string $type
-     * @param string|Closure $mapper
+     * @param Closure $countsMapper
      */
-    public function __construct(string $id, string $title, string $type, string|Closure $mapper)
+    public function __construct(string $id, string $title, string $type, Closure $countsMapper)
     {
         $this->id = $id;
         $this->title = $title;
         $this->type = $type;
-        $this->mapper = $mapper;
+        $this->countsMapper = $countsMapper;
     }
 
     /**

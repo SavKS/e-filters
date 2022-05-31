@@ -2,7 +2,7 @@
 
 namespace Savks\EFilters\Support\Blocks;
 
-use Savks\EFilters\Filters\BlockDeclaration;
+use Savks\EFilters\Blocks\BlockDeclaration;
 
 abstract class RangeBlockDeclaration extends BlockDeclaration
 {
