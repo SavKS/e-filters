@@ -19,22 +19,17 @@ class ChooseValue
     /**
      * @var int
      */
-    public int $count;
-
-    /**
-     * @var bool
-     */
-    public bool $isActive;
-
-    /**
-     * @var bool
-     */
-    public bool $isSelected;
+    protected int $count;
 
     /**
      * @var array|null
      */
     protected ?array $payload = null;
+
+    /**
+     * @var int|null
+     */
+    protected ?int $weight = null;
 
     /**
      * @param string $id
@@ -46,9 +41,17 @@ class ChooseValue
         $this->id = $id;
         $this->content = $content;
         $this->count = $count;
+    }
 
-        $this->isActive = true;
-        $this->isSelected = false;
+    /**
+     * @param int $value
+     * @return $this
+     */
+    public function setWeight(int $value): static
+    {
+        $this->weight = $value;
+
+        return $this;
     }
 
     /**
@@ -78,6 +81,17 @@ class ChooseValue
     }
 
     /**
+     * @param int $count
+     * @return $this
+     */
+    public function updateCount(int $count): static
+    {
+        $this->count = $count;
+
+        return $this;
+    }
+
+    /**
      * @return array
      */
     public function toArray(): array
@@ -87,7 +101,7 @@ class ChooseValue
             'content' => $this->content,
             'count' => $this->count,
             'payload' => $this->payload,
-            'isActive' => $this->isActive,
+            'weight' => $this->weight,
         ];
     }
 }

@@ -2,15 +2,33 @@
 
 namespace Savks\EFilters\Support\Blocks;
 
-use Illuminate\Support\Arr;
+use Closure;
 use Savks\EFilters\Blocks\Block;
 
 class ChooseBlock extends Block
 {
     /**
+     * @var Closure
+     */
+    protected Closure $countsMapResolver;
+
+    /**
      * @var ChooseValue[]
      */
     protected array $values = [];
+
+    /**
+     * @param string $id
+     * @param string $title
+     * @param string $type
+     * @param Closure(array): array<string, int> $countsMapResolver
+     */
+    public function __construct(string $id, string $title, string $type, Closure $countsMapResolver)
+    {
+        parent::__construct($id, $title, $type);
+
+        $this->countsMapResolver = $countsMapResolver;
+    }
 
     /**
      * @param ChooseValue $value
@@ -18,7 +36,7 @@ class ChooseBlock extends Block
      */
     public function addValue(ChooseValue $value): self
     {
-        $this->values[$value->id] = $value;
+        $this->values[] = $value;
 
         return $this;
     }
@@ -26,15 +44,12 @@ class ChooseBlock extends Block
     /**
      * @param array $aggregated
      */
-    public function mapToValues(array $aggregated): void
+    public function updateValueCounts(array $aggregated): void
     {
-        $countsMap = \call_user_func($this->countsMapper, $aggregated);
+        $countsMap = \call_user_func($this->countsMapResolver, $aggregated);
 
         foreach ($this->values as $value) {
-            $count = $countsMap[$value->id] ?? 0;
-
-            $value->isActive = $count > 0;
-            $value->count = $count;
+            $value->updateCount($countsMap[$value->id] ?? 0);
         }
     }
 
@@ -44,43 +59,45 @@ class ChooseBlock extends Block
      */
     public function toArray(bool $flatten = false): array
     {
-        $block = [
+        $mappedBlock = [
             'id' => $this->id,
             'type' => 'choose',
-            'name' => $this->title,
+            'title' => $this->title,
             'payload' => $this->payload,
             'weight' => $this->weight,
         ];
 
-        $values = [];
+        $mappedValues = [];
 
         foreach ($this->values as $value) {
-            /** @var ChooseValue $data */
             $data = $value->toArray();
 
-            $values[$data['id']] = [
-                'id' => $data['id'],
+            $mappedValues[$data['id']] = [
+                ...$data,
+
                 'parentId' => $this->id,
-                'content' => $data['content'],
-                'payload' => $data['payload'],
-                'count' => $data['count'],
-                'isActive' => $data['isActive'],
             ];
         }
+
+        $sortedMappedValues = \collect($mappedValues)->sortBy(
+            fn (array $mappedValue) => $mappedValue['weight'] ?? $mappedValue['content']
+        )->all();
 
         if ($flatten) {
-            $block['valueIds'] = \array_keys($values);
-
             return [
-                'block' => $block,
-                'values' => $values,
+                [
+                    ...$mappedBlock,
+
+                    'valueIds' => \array_keys($sortedMappedValues),
+                ],
+                $sortedMappedValues,
             ];
         }
 
-        $block['values'] = \array_values($values);
-
         return [
-            'block' => $block,
+            ...$mappedBlock,
+
+            'values' => \array_values($sortedMappedValues),
         ];
     }
 }

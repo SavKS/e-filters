@@ -2,14 +2,10 @@
 
 namespace Savks\EFilters\Support\Criteria;
 
+use Savks\EFilters\Criteria\ChooseConditions;
 use Savks\EFilters\Support\Blocks\ChooseBlockDeclaration;
 
-use Savks\EFilters\Criteria\{
-    Conditions,
-    Criteria
-};
-
-abstract class ChooseCriteria extends Criteria
+abstract class ChooseCriteria
 {
     /**
      * @var array
@@ -19,12 +15,12 @@ abstract class ChooseCriteria extends Criteria
     /**
      * @var ChooseBlockDeclaration|null
      */
-    protected ?ChooseBlockDeclaration $blockDeclaration;
+    public readonly ?ChooseBlockDeclaration $blockDeclaration;
 
     /**
-     * @var Conditions
+     * @var ChooseConditions
      */
-    protected Conditions $conditions;
+    public readonly ChooseConditions $conditions;
 
     /**
      * @param array $values
@@ -36,25 +32,15 @@ abstract class ChooseCriteria extends Criteria
         $this->blockDeclaration = $blockDeclaration;
 
         $this->defineConditions(
-            $this->conditions = new Conditions()
+            $this->conditions = new ChooseConditions()
         );
     }
 
     /**
-     * @return Conditions
+     * @param ChooseConditions $conditions
+     * @return void
      */
-    public function conditions(): Conditions
-    {
-        return $this->conditions;
-    }
-
-    /**
-     * @return ChooseBlockDeclaration|null
-     */
-    public function blockDeclaration(): ?ChooseBlockDeclaration
-    {
-        return $this->blockDeclaration;
-    }
+    abstract protected function defineConditions(ChooseConditions $conditions): void;
 
     /**
      * @return bool

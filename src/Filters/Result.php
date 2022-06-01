@@ -1,6 +1,6 @@
 <?php
 
-namespace Savks\EFilters\Builder;
+namespace Savks\EFilters\Filters;
 
 use Savks\EFilters\Blocks\Blocks;
 use Savks\ESearch\Builder\Result as ESearchResult;

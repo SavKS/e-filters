@@ -2,7 +2,6 @@
 
 namespace Savks\EFilters\Blocks;
 
-use Closure;
 use Illuminate\Support\Arr;
 
 abstract class Block
@@ -23,32 +22,25 @@ abstract class Block
     public string $type;
 
     /**
-     * @var Closure
-     */
-    protected Closure $countsMapper;
-
-    /**
      * @var array|null
      */
     protected ?array $payload = null;
 
     /**
-     * @var int
+     * @var int|null
      */
-    public int $weight = 9999;
+    protected ?int $weight = null;
 
     /**
      * @param string $id
      * @param string $title
      * @param string $type
-     * @param Closure $countsMapper
      */
-    public function __construct(string $id, string $title, string $type, Closure $countsMapper)
+    public function __construct(string $id, string $title, string $type)
     {
         $this->id = $id;
         $this->title = $title;
         $this->type = $type;
-        $this->countsMapper = $countsMapper;
     }
 
     /**
@@ -87,10 +79,4 @@ abstract class Block
 
         return Arr::get($this->payload, $key, $default);
     }
-
-    /**
-     * @param bool $flatten
-     * @return array
-     */
-    abstract public function toArray(bool $flatten = false): array;
 }

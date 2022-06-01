@@ -4,14 +4,14 @@ namespace Savks\EFilters\Support;
 
 use Closure;
 use Savks\EFilters\Blocks\Blocks;
-use Savks\EFilters\Builder\Result;
-use Savks\EFilters\Criteria\Conditions;
+use Savks\EFilters\Filters\Result;
 use Savks\ESearch\Builder\Builder;
 
 use Elastic\Elasticsearch\Exception\{
     AuthenticationException,
     ClientResponseException,
-    ServerResponseException};
+    ServerResponseException
+};
 use Savks\EFilters\Support\Criteria\{
     ChooseCriteria,
     RangeCriteria
@@ -131,12 +131,14 @@ class Filters
                 continue;
             }
 
-            if (! $criteria->conditions()->all()) {
+            if (! $criteria->conditions->all()) {
                 continue;
             }
 
-            foreach ($criteria->conditions()->all() as $condition) {
-                $query->addQuery($condition->query);
+            foreach ($criteria->conditions->all() as $condition) {
+                $query->addQuery(
+                    $condition->toQuery()
+                );
             }
         }
 

@@ -4,16 +4,10 @@ namespace Savks\EFilters\Criteria;
 
 use Savks\ESearch\Builder\DSL\Query;
 
-class Condition
+interface Condition
 {
     /**
-     * @param string $id
-     * @param Query $query
+     * @return Query
      */
-    public function __construct(
-        public readonly string $id,
-        public readonly Query $query
-    ) {
-        //
-    }
+    public function toQuery(): Query;
 }
