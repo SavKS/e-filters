@@ -36,7 +36,7 @@ class Result
      */
     public function __get(string $name): mixed
     {
-        return $this->{$name};
+        return $this->result->{$name};
     }
 
     /**
@@ -46,6 +46,6 @@ class Result
      */
     public function __call(string $name, array $arguments): mixed
     {
-        return $this->{$name}(...$arguments);
+        return $this->result->{$name}(...$arguments);
     }
 }
