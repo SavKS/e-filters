@@ -121,6 +121,35 @@ class Filters
     }
 
     /**
+     * @return int
+     * @throws AuthenticationException
+     * @throws ClientResponseException
+     * @throws ServerResponseException
+     */
+    public function count(): int
+    {
+        $query = clone $this->query;
+
+        $this->applyCriteria($query);
+
+        return $query->count();
+    }
+
+    /**
+     * @param bool $pretty
+     * @param int $flags
+     * @return string
+     */
+    public function toKibana(bool $pretty = false, int $flags = 0): string
+    {
+        $query = clone $this->query;
+
+        $this->applyCriteria($query);
+
+        return $query->toKibana($pretty, $flags);
+    }
+
+    /**
      * @param Builder $query
      * @return Builder
      */

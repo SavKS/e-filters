@@ -31,9 +31,11 @@ abstract class ChooseCriteria
         $this->values = $values;
         $this->blockDeclaration = $blockDeclaration;
 
-        $this->defineConditions(
-            $this->conditions = new ChooseConditions()
-        );
+        $this->conditions = new ChooseConditions();
+
+        if ($this->values) {
+            $this->defineConditions($this->conditions);
+        }
     }
 
     /**
