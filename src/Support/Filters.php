@@ -60,22 +60,27 @@ class Filters
     }
 
     /**
-     * @param int $page
      * @param bool $withMapping
      * @param Closure|null $mapResolver
+     * @param string $pageName
+     * @param int|null $page
      * @return Result
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
      */
-    public function paginate(int $page, bool $withMapping = false, Closure $mapResolver = null): Result
-    {
+    public function paginate(
+        bool $withMapping = false,
+        Closure $mapResolver = null,
+        string $pageName = 'page',
+        int $page = null
+    ): Result {
         $query = clone $this->query;
 
         $this->applyCriteria($query);
 
         return new Result(
-            $query->paginate($page, $withMapping, $mapResolver),
+            $query->paginate($withMapping, $mapResolver, $pageName, $page),
             new Blocks(clone $this->query, $this->criteria)
         );
     }
