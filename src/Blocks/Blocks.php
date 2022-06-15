@@ -79,9 +79,17 @@ class Blocks
                     if ($flatten) {
                         [$mappedBlock, $mapperBlockValues] = $block->toArray(true);
 
+                        if (! $mappedBlock['valueIds']) {
+                            continue;
+                        }
+
                         $mappedValues[$block->id] = $mapperBlockValues;
                     } else {
                         $mappedBlock = $block->toArray();
+
+                        if (! $mappedBlock['values']) {
+                            continue;
+                        }
                     }
 
                     $mappedBlocks[] = $mappedBlock;
@@ -106,7 +114,7 @@ class Blocks
         }
 
         $sortedMappedBlocks = \collect($mappedBlocks)->sortBy(
-            fn(array $mappedBlock) => $mappedBlock['weight'] ?? $mappedBlock['title']
+            fn (array $mappedBlock) => $mappedBlock['weight'] ?? $mappedBlock['title']
         )->values()->all();
 
         if ($flatten) {
@@ -138,7 +146,7 @@ class Blocks
             'size' => 0,
             'body' => [
                 'query' => $this->query->toBodyQuery(),
-                'aggs' => $aggregations,
+                'aggs' => $aggregations ?: new stdClass(),
             ],
         ]);
 
@@ -148,7 +156,7 @@ class Blocks
             /** @var ChooseCriteria|RangeCriteria $criteria */
             $criteria = Arr::first(
                 $this->criteria,
-                fn(ChooseCriteria|RangeCriteria $criteria) => $criteria::class === $aggregationName
+                fn (ChooseCriteria|RangeCriteria $criteria) => $criteria::class === $aggregationName
             );
 
             $criteriaWithBlocks[] = [
