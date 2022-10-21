@@ -10,40 +10,17 @@ use Savks\ESearch\Builder\Result as ESearchResult;
  */
 class Result
 {
-    /**
-     * @var ESearchResult
-     */
-    protected ESearchResult $result;
-
-    /**
-     * @var Blocks
-     */
-    public readonly Blocks $blocks;
-
-    /**
-     * @param ESearchResult $result
-     * @param Blocks $blocks
-     */
-    public function __construct(ESearchResult $result, Blocks $blocks)
-    {
-        $this->result = $result;
-        $this->blocks = $blocks;
+    public function __construct(
+        protected ESearchResult $result,
+        public readonly Blocks $blocks
+    ) {
     }
 
-    /**
-     * @param string $name
-     * @return mixed
-     */
     public function __get(string $name): mixed
     {
         return $this->result->{$name};
     }
 
-    /**
-     * @param string $name
-     * @param array $arguments
-     * @return mixed
-     */
     public function __call(string $name, array $arguments): mixed
     {
         return $this->result->{$name}(...$arguments);

@@ -7,29 +7,12 @@ use Savks\EFilters\Support\Blocks\ChooseBlockDeclaration;
 
 abstract class ChooseCriteria
 {
-    /**
-     * @var array
-     */
-    public readonly array $values;
-
-    /**
-     * @var ChooseBlockDeclaration|null
-     */
-    public readonly ?ChooseBlockDeclaration $blockDeclaration;
-
-    /**
-     * @var ChooseConditions
-     */
     public readonly ChooseConditions $conditions;
 
-    /**
-     * @param array $values
-     * @param ChooseBlockDeclaration|null $blockDeclaration
-     */
-    public function __construct(array $values, ChooseBlockDeclaration $blockDeclaration = null)
-    {
-        $this->values = $values;
-        $this->blockDeclaration = $blockDeclaration;
+    public function __construct(
+        public readonly array $values,
+        public readonly ?ChooseBlockDeclaration $blockDeclaration = null
+    ) {
 
         $this->conditions = new ChooseConditions();
 
@@ -38,15 +21,8 @@ abstract class ChooseCriteria
         }
     }
 
-    /**
-     * @param ChooseConditions $conditions
-     * @return void
-     */
     abstract protected function defineConditions(ChooseConditions $conditions): void;
 
-    /**
-     * @return bool
-     */
     public function exists(): bool
     {
         return ! empty($this->values);

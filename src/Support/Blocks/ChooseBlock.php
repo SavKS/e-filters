@@ -7,9 +7,6 @@ use Savks\EFilters\Blocks\Block;
 
 class ChooseBlock extends Block
 {
-    /**
-     * @var Closure
-     */
     protected Closure $countsMapResolver;
 
     /**
@@ -18,22 +15,15 @@ class ChooseBlock extends Block
     protected array $values = [];
 
     /**
-     * @param string $id
-     * @param string $title
-     * @param string $type
      * @param Closure(array): array<string, int> $countsMapResolver
      */
-    public function __construct(string $id, string $title, string $type, Closure $countsMapResolver)
+    public function __construct(string $id, string $title, string $entityType, Closure $countsMapResolver)
     {
-        parent::__construct($id, $title, $type);
+        parent::__construct($id, $title, $entityType);
 
         $this->countsMapResolver = $countsMapResolver;
     }
 
-    /**
-     * @param ChooseValue $value
-     * @return $this
-     */
     public function addValue(ChooseValue $value): self
     {
         $this->values[] = $value;
@@ -41,9 +31,6 @@ class ChooseBlock extends Block
         return $this;
     }
 
-    /**
-     * @param array $aggregated
-     */
     public function updateValueCounts(array $aggregated): void
     {
         $countsMap = \call_user_func($this->countsMapResolver, $aggregated);
@@ -53,15 +40,12 @@ class ChooseBlock extends Block
         }
     }
 
-    /**
-     * @param bool $flatten
-     * @return array
-     */
     public function toArray(bool $flatten = false): array
     {
         $mappedBlock = [
             'id' => $this->id,
             'type' => 'choose',
+            'entityType' => $this->entityType,
             'title' => $this->title,
             'payload' => $this->payload,
             'weight' => $this->weight,

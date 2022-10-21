@@ -7,46 +7,19 @@ use Illuminate\Support\Arr;
 class ChooseValue
 {
     /**
-     * @var string
-     */
-    public readonly string $id;
-
-    /**
-     * @var string
-     */
-    public readonly string $content;
-
-    /**
-     * @var int
-     */
-    protected int $count;
-
-    /**
-     * @var array|null
+     * @var array<string, mixed>|null
      */
     protected ?array $payload = null;
 
-    /**
-     * @var int|null
-     */
     protected ?int $weight = null;
 
-    /**
-     * @param string $id
-     * @param string $content
-     * @param int $count
-     */
-    public function __construct(string $id, string $content, int $count = 0)
-    {
-        $this->id = $id;
-        $this->content = $content;
-        $this->count = $count;
+    public function __construct(
+        public readonly string $id,
+        public readonly string $content,
+        protected int $count = 0
+    ) {
     }
 
-    /**
-     * @param int $value
-     * @return $this
-     */
     public function setWeight(int $value): static
     {
         $this->weight = $value;
@@ -54,11 +27,6 @@ class ChooseValue
         return $this;
     }
 
-    /**
-     * @param string $key
-     * @param mixed $value
-     * @return $this
-     */
     public function putToPayload(string $key, mixed $value): self
     {
         Arr::set($this->payload, $key, $value);
@@ -66,11 +34,6 @@ class ChooseValue
         return $this;
     }
 
-    /**
-     * @param string|null $key
-     * @param mixed|null $default
-     * @return mixed
-     */
     public function payload(string $key = null, mixed $default = null): mixed
     {
         if ($key === null) {
@@ -80,10 +43,6 @@ class ChooseValue
         return Arr::get($this->payload, $key, $default);
     }
 
-    /**
-     * @param int $count
-     * @return $this
-     */
     public function updateCount(int $count): static
     {
         $this->count = $count;
@@ -91,9 +50,6 @@ class ChooseValue
         return $this;
     }
 
-    /**
-     * @return array
-     */
     public function toArray(): array
     {
         return [

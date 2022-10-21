@@ -27,34 +27,15 @@ use Savks\ESearch\Builder\{
 
 class Blocks
 {
-    /**
-     * @var Builder
-     */
-    protected Builder $query;
-
-    /**
-     * @var ChooseCriteria[]|RangeCriteria[]
-     */
-    protected array $criteria;
-
-    /**
-     * @var array
-     */
     protected array $criteriaWithBlocks;
 
-    /**
-     * @param Builder $query
-     * @param array $criteria
-     */
-    public function __construct(Builder $query, array $criteria)
-    {
-        $this->query = $query;
-        $this->criteria = $criteria;
+    public function __construct(
+        protected Builder $query,
+        protected array $criteria
+    ) {
     }
 
     /**
-     * @param bool $flatten
-     * @return array
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -74,8 +55,8 @@ class Blocks
             $criteria = $criteriaWithBlock['criteria'];
 
             if ($criteria instanceof ChooseCriteria) {
+                /** @var ChooseBlock $block */
                 foreach ($criteriaWithBlock['blocks'] as $block) {
-                    /** @var ChooseBlock $block */
                     if ($flatten) {
                         [$mappedBlock, $mapperBlockValues] = $block->toArray(true);
 
@@ -101,8 +82,8 @@ class Blocks
                     }
                 }
             } else {
+                /** @var RangeBlock $block */
                 foreach ($criteriaWithBlock['blocks'] as $block) {
-                    /** @var RangeBlock $block */
                     $mappedBlocks[] = $block->toArray();
 
                     $selected[$block->id] = [
@@ -132,7 +113,7 @@ class Blocks
     }
 
     /**
-     * @return RangeBlock[]|ChooseBlock[]
+     * @return array{criteria: ChooseCriteria|RangeCriteria, blocks: ChooseBlock[]|RangeBlock[]}[]
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -170,9 +151,6 @@ class Blocks
         return $this->updateCriteriaWithBlocksCounts($criteriaWithBlocks);
     }
 
-    /**
-     * @return array
-     */
     protected function collectAggregations(): array
     {
         $result = [];
@@ -191,8 +169,8 @@ class Blocks
     }
 
     /**
-     * @param array $blockGroups
-     * @return ChooseBlock[]|RangeBlock[]
+     * @param array{criteria: ChooseCriteria|RangeCriteria, blocks: ChooseBlock[]|RangeBlock[]}[] $blockGroups
+     * @return array{criteria: ChooseCriteria|RangeCriteria, blocks: ChooseBlock[]|RangeBlock[]}[]
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -222,8 +200,8 @@ class Blocks
         ];
 
         foreach ($blockGroups as $blockGroup) {
+            /** @var ChooseBlock|RangeBlock $block */
             foreach ($blockGroup['blocks'] as $block) {
-                /** @var ChooseBlock|RangeBlock $block */
                 $subQuery = new Query();
 
                 $subQuery->bool(function (BoolCondition $boolCondition) use ($conditions, $block) {

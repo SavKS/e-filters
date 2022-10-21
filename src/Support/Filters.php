@@ -20,27 +20,14 @@ use Savks\EFilters\Support\Criteria\{
 class Filters
 {
     /**
-     * @var Builder
-     */
-    protected Builder $query;
-
-    /**
      * @var ChooseCriteria[]|RangeCriteria[]
      */
     protected array $criteria = [];
 
-    /**
-     * @param Builder $query
-     */
-    public function __construct(Builder $query)
+    public function __construct(protected Builder $query)
     {
-        $this->query = $query;
     }
 
-    /**
-     * @param ChooseCriteria $criteria
-     * @return $this
-     */
     public function choose(ChooseCriteria $criteria): static
     {
         $this->criteria[] = $criteria;
@@ -48,10 +35,6 @@ class Filters
         return $this;
     }
 
-    /**
-     * @param RangeCriteria $criteria
-     * @return $this
-     */
     public function range(RangeCriteria $criteria): static
     {
         $this->criteria[] = $criteria;
@@ -60,11 +43,6 @@ class Filters
     }
 
     /**
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @param string $pageName
-     * @param int|null $page
-     * @return Result
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -86,9 +64,6 @@ class Filters
     }
 
     /**
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return Result
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -106,9 +81,6 @@ class Filters
     }
 
     /**
-     * @param bool $withMapping
-     * @param Closure|null $mapResolver
-     * @return Result
      * @throws ClientResponseException
      * @throws ServerResponseException
      * @throws AuthenticationException
@@ -126,7 +98,6 @@ class Filters
     }
 
     /**
-     * @return int
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -140,12 +111,7 @@ class Filters
         return $query->count();
     }
 
-    /**
-     * @param bool $pretty
-     * @param int $flags
-     * @return string
-     */
-    public function toKibana(bool $pretty = false, int $flags = 0): string
+    public function toKibana(bool $pretty = true, int $flags = 0): string
     {
         $query = clone $this->query;
 
@@ -154,10 +120,6 @@ class Filters
         return $query->toKibana($pretty, $flags);
     }
 
-    /**
-     * @param Builder $query
-     * @return Builder
-     */
     protected function applyCriteria(Builder $query): Builder
     {
         foreach ($this->criteria as $criteria) {
