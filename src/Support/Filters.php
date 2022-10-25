@@ -3,6 +3,7 @@
 namespace Savks\EFilters\Support;
 
 use Closure;
+use Illuminate\Contracts\Database\Eloquent\Builder as EloquentBuilder;
 use Savks\EFilters\Blocks\Blocks;
 use Savks\EFilters\Filters\Result;
 use Savks\ESearch\Builder\Builder;
@@ -43,6 +44,7 @@ class Filters
     }
 
     /**
+     * @param (Closure(EloquentBuilder): void)|null $mapResolver
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -64,6 +66,7 @@ class Filters
     }
 
     /**
+     * @param (Closure(EloquentBuilder): void)|null $mapResolver
      * @throws AuthenticationException
      * @throws ClientResponseException
      * @throws ServerResponseException
@@ -81,6 +84,7 @@ class Filters
     }
 
     /**
+     * @param (Closure(EloquentBuilder): void)|null $mapResolver
      * @throws ClientResponseException
      * @throws ServerResponseException
      * @throws AuthenticationException

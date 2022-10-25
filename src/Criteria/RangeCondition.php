@@ -7,6 +7,9 @@ use Savks\ESearch\Builder\DSL\Query;
 
 class RangeCondition implements Condition
 {
+    /**
+     * @param Closure(int|float|null, int|float|null): Query $queryResolver
+     */
     public function __construct(
         public readonly string $blockId,
         public readonly int|float|null $minValue,

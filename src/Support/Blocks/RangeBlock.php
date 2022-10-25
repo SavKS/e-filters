@@ -15,6 +15,9 @@ class RangeBlock extends Block
 
     protected int|float|null $currentMaxLimit = null;
 
+    /**
+     * @param Closure(array): array{0: int|float|null, 1: int|float|null} $limitsResolver
+     */
     public function __construct(
         string $id,
         string $title,
