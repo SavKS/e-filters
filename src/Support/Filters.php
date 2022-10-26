@@ -131,13 +131,19 @@ class Filters
                 continue;
             }
 
-            if (! $criteria->conditions->all()) {
-                continue;
-            }
+            if ($criteria instanceof ChooseCriteria) {
+                if (! $criteria->conditions->all()) {
+                    continue;
+                }
 
-            foreach ($criteria->conditions->all() as $condition) {
+                foreach ($criteria->conditions->all() as $condition) {
+                    $query->addQuery(
+                        $condition->toQuery()
+                    );
+                }
+            } else {
                 $query->addQuery(
-                    $condition->toQuery()
+                    $criteria->condition->toQuery()
                 );
             }
         }
