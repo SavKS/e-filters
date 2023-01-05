@@ -7,9 +7,9 @@ use Savks\EFilters\Blocks\Block;
 
 class RangeBlock extends Block
 {
-    protected int|float $minValue;
+    protected int|float|null $minValue;
 
-    protected int|float $maxValue;
+    protected int|float|null $maxValue;
 
     protected int|float|null $currentMinLimit = null;
 
