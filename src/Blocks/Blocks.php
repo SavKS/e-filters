@@ -6,11 +6,6 @@ use Illuminate\Support\Arr;
 use Savks\EFilters\Criteria\Condition;
 use stdClass;
 
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    ServerResponseException
-};
 use Savks\EFilters\Support\Blocks\{
     ChooseBlock,
     RangeBlock
@@ -35,11 +30,6 @@ class Blocks
     ) {
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function toArray(bool $flatten = false): array
     {
         if (! isset($this->criteriaWithBlocks)) {
@@ -114,9 +104,6 @@ class Blocks
 
     /**
      * @return array{criteria: ChooseCriteria|RangeCriteria, blocks: ChooseBlock[]|RangeBlock[]}[]
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
      */
     protected function fetchCriteriaWithBlocks(): array
     {
@@ -171,9 +158,6 @@ class Blocks
     /**
      * @param array{criteria: ChooseCriteria|RangeCriteria, blocks: ChooseBlock[]|RangeBlock[]}[] $blockGroups
      * @return array{criteria: ChooseCriteria|RangeCriteria, blocks: ChooseBlock[]|RangeBlock[]}[]
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
      */
     protected function updateCriteriaWithBlocksCounts(array $blockGroups): array
     {

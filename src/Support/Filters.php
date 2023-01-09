@@ -8,11 +8,6 @@ use Savks\EFilters\Blocks\Blocks;
 use Savks\EFilters\Filters\Result;
 use Savks\ESearch\Builder\Builder;
 
-use Elastic\Elasticsearch\Exception\{
-    AuthenticationException,
-    ClientResponseException,
-    ServerResponseException
-};
 use Savks\EFilters\Support\Criteria\{
     ChooseCriteria,
     RangeCriteria
@@ -45,9 +40,6 @@ class Filters
 
     /**
      * @param (Closure(EloquentBuilder): void)|null $mapResolver
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
      */
     public function paginate(
         bool $withMapping = false,
@@ -65,11 +57,18 @@ class Filters
         );
     }
 
+    protected function prepareQuery(): Builder
+    {
+        return $this->applyCriteria(clone $this->query);
+    }
+
+    public function toKibana(bool $pretty = true, int $flags = 0)
+    {
+        return $this->prepareQuery()->toKibana($pretty, $flags);
+    }
+
     /**
      * @param (Closure(EloquentBuilder): void)|null $mapResolver
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
      */
     public function get(bool $withMapping = false, Closure $mapResolver = null): Result
     {
@@ -85,9 +84,6 @@ class Filters
 
     /**
      * @param (Closure(EloquentBuilder): void)|null $mapResolver
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     * @throws AuthenticationException
      */
     public function all(bool $withMapping = false, Closure $mapResolver = null): Result
     {
@@ -101,11 +97,6 @@ class Filters
         );
     }
 
-    /**
-     * @throws AuthenticationException
-     * @throws ClientResponseException
-     * @throws ServerResponseException
-     */
     public function count(): int
     {
         $query = clone $this->query;
@@ -113,15 +104,6 @@ class Filters
         $this->applyCriteria($query);
 
         return $query->count();
-    }
-
-    public function toKibana(bool $pretty = true, int $flags = 0): string
-    {
-        $query = clone $this->query;
-
-        $this->applyCriteria($query);
-
-        return $query->toKibana($pretty, $flags);
     }
 
     protected function applyCriteria(Builder $query): Builder
