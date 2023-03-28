@@ -25,4 +25,9 @@ class Result
     {
         return $this->result->{$name}(...$arguments);
     }
+
+    public function __isset(string $name): bool
+    {
+        return isset($this->result->{$name});
+    }
 }

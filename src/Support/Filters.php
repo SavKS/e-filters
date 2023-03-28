@@ -3,7 +3,7 @@
 namespace Savks\EFilters\Support;
 
 use Closure;
-use Illuminate\Contracts\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Savks\EFilters\Blocks\Blocks;
 use Savks\EFilters\Filters\Result;
 use Savks\ESearch\Builder\Builder;
@@ -47,24 +47,22 @@ class Filters
         string $pageName = 'page',
         int $page = null
     ): Result {
-        $query = clone $this->query;
-
-        $this->applyCriteria($query);
+        $query = $this->query();
 
         return new Result(
             $query->paginate($withMapping, $mapResolver, $pageName, $page),
-            new Blocks(clone $this->query, $this->criteria)
+            new Blocks(clone $query, $this->criteria)
         );
     }
 
-    protected function prepareQuery(): Builder
+    public function toKibana(bool $pretty = true, int $flags = 0): string
     {
-        return $this->applyCriteria(clone $this->query);
+        return $this->query()->toKibana($pretty, $flags);
     }
 
-    public function toKibana(bool $pretty = true, int $flags = 0)
+    public function query(): Builder
     {
-        return $this->prepareQuery()->toKibana($pretty, $flags);
+        return $this->applyCriteria(clone $this->query);
     }
 
     /**
