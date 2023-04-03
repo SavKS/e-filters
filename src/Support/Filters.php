@@ -51,7 +51,7 @@ class Filters
 
         return new Result(
             $query->paginate($withMapping, $mapResolver, $pageName, $page),
-            new Blocks(clone $query, $this->criteria)
+            new Blocks(clone $this->query, $this->criteria)
         );
     }
 
